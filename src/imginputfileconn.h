@@ -511,7 +511,13 @@ namespace dd
 	    _meta_uris = ad.get("meta_uris").get<std::vector<std::string>>();
 	  if (ad.has("index_uris"))
 	    _index_uris = ad.get("index_uris").get<std::vector<std::string>>();
-	  
+	  if (ad.has("bboxes"))
+	  {
+//        for (const auto &b : ad.getv("bboxes")) {
+//            _bboxes.push_back(b.get("bbox").get<std::vector<double>>());
+//        }
+        _bboxes = ad.get("bboxes").get<std::vector<std::string>>();
+	  }
 	  _images = ad.get("data_raw_img").get<std::vector<cv::Mat>>();
 	  std::vector<cv::Mat> rimgs;
 	  std::vector<std::string> uris;

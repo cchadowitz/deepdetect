@@ -173,6 +173,14 @@ namespace dd
 	    _meta_uris = ad.get("meta_uris").get<std::vector<std::string>>();
 	  if (ad.has("index_uris"))
 	    _index_uris = ad.get("index_uris").get<std::vector<std::string>>();
+	  if (ad.has("bboxes"))
+	  {
+//	      for (const auto &b : ad.getv("bboxes")) {
+//            _bboxes.push_back(b.get("bbox").get<std::vector<double>>());
+//	      }
+        _bboxes = ad.get("bboxes").get<std::vector<std::string>>();
+	  }
+
 	}
       catch(...)
 	{
@@ -209,6 +217,7 @@ namespace dd
     std::vector<std::string> _ids;
     std::vector<std::string> _meta_uris; /**< first level URIs, used with chains typically. */
     std::vector<std::string> _index_uris; /**< URI to be stored in similarity search index. */
+    std::vector<std::string> _bboxes;
     std::string _model_repo; /**< model repository, useful when connector needs to read from saved data (e.g. vocabulary). */
     std::shared_ptr<spdlog::logger> _logger;
 

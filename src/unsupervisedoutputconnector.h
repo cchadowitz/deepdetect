@@ -31,8 +31,9 @@ namespace dd
     unsup_result(const std::string &uri,
 		 const std::vector<double> &vals,
                  const APIData &extra=APIData(),
-		 const std::string &meta_uri="")
-      :_uri(uri),_vals(vals),_extra(extra), _meta_uri(meta_uri) {
+		 const std::string &meta_uri="",
+		 const std::string &bbox="")
+      :_uri(uri),_vals(vals),_extra(extra), _meta_uri(meta_uri), _bbox(bbox) {
     }
 
     ~unsup_result() {}
@@ -74,6 +75,7 @@ namespace dd
 #endif
     APIData _extra; /**< other metadata, e.g. image size.*/
     std::string _meta_uri; // used for indexing from a chain
+    std::string _bbox;
   };
   
   /**
@@ -126,7 +128,10 @@ namespace dd
 	       meta_uri = ad.get("index_uri").get<std::string>();
 	     else if (ad.has("meta_uri"))
 	       meta_uri = ad.get("meta_uri").get<std::string>();
-	     _vvres.push_back(unsup_result(uri,vals,extra,meta_uri));
+	     std::string bbox;
+	     if (ad.has("bbox"))
+            bbox = ad.get("bbox").get<std::string>();
+	     _vvres.push_back(unsup_result(uri,vals,extra,meta_uri, bbox));
 	    }
 	  
 	}
@@ -184,9 +189,17 @@ namespace dd
 	  for (size_t i=0;i<_vvres.size();i++)
 	    {
 	      URIData urid;
+	      std::vector<double> bbox;
+	      if (!_vvres.at(i)._bbox.empty()) {
+            std::vector<std::string> tok = dd_utils::split(_vvres.at(i)._bbox,';');
+	        for (int j=0;j<4;j++) // bbox is 4 double
+            {
+              bbox.push_back(std::stod(tok.at(j)));
+            }
+	      }
 	      if (_vvres.at(i)._meta_uri.empty())
-		urid = URIData(_vvres.at(i)._uri);
-	      else urid = URIData(_vvres.at(i)._meta_uri);
+		urid = URIData(_vvres.at(i)._uri, bbox);
+	      else urid = URIData(_vvres.at(i)._meta_uri, bbox);
 #ifdef USE_FAISS
           urids.push_back(urid);
           vvals.push_back(_vvres.at(i)._vals);

@@ -635,6 +635,7 @@ namespace dd
 		      const std::string &pred_id,
 		      std::vector<std::string> &meta_uris,
 		      std::vector<std::string> &index_uris,
+		      std::vector<std::string> &bboxes,
 		      const std::string &parent_id,
 		      const int chain_pos,
 		      int &npredicts)
@@ -670,6 +671,7 @@ namespace dd
 	  adc.add("ids",act_data.get("cids").get<std::vector<std::string>>()); // chain ids of processed elements
 	  adc.add("meta_uris",meta_uris);
 	  adc.add("index_uris",index_uris);
+	  adc.add("bboxes", bboxes);
 	}
       else {
 	cdata._first_id = pred_id;
@@ -698,6 +700,7 @@ namespace dd
       int vals_size = 0;
       std::vector<std::string> nmeta_uris;
       std::vector<std::string> nindex_uris;
+      std::vector<std::string> nbboxes;
       for (size_t j=0;j<vad.size();j++)
 	{
 	  size_t npred_classes = vad.at(j).getv("classes").size();
@@ -710,6 +713,8 @@ namespace dd
 		  nmeta_uris.push_back(vad.at(j).get("uri").get<std::string>());
 		  if (vad.at(j).has("index_uri"))
 		    nindex_uris.push_back(vad.at(j).get("index_uri").get<std::string>());
+		  if (vad.at(j).has("bbox"))
+		      nbboxes.push_back(vad.at(j).get("bbox").get<std::string>());
 		}
 	    }
 	  else // update meta uris to batch size at the current level of the chain
@@ -719,11 +724,14 @@ namespace dd
 		  nmeta_uris.push_back(meta_uris.at(j));
 		  if (!index_uris.empty())
 		    nindex_uris.push_back(index_uris.at(j));
+		  if (!bboxes.empty())
+		      nbboxes.push_back(bboxes.at(j));
 		}
 	    }
 	}
       meta_uris = nmeta_uris;
       index_uris = nindex_uris;
+      bboxes = nbboxes;
       
       if (!classes_size && !vals_size)
 	{
@@ -818,8 +826,10 @@ namespace dd
 	  ChainData cdata;
 	  std::vector<std::string> meta_uris;
 	  std::vector<std::string> index_uris;
+	  std::vector<std::string> bboxes;
 	  std::unordered_map<std::string,std::vector<std::string>> um_meta_uris;
 	  std::unordered_map<std::string,std::vector<std::string>> um_index_uris;
+	  std::unordered_map<std::string,std::vector<std::string>> um_bboxes;
 	  int npredicts = 0;
 	  std::string prec_pred_id;
 	  std::string prec_action_id;
@@ -845,9 +855,12 @@ namespace dd
 		  hit = um_index_uris.find(parent_id);
 		  if (hit!=um_index_uris.end())
 		    index_uris = (*hit).second;
+		  hit = um_bboxes.find(parent_id);
+		  if (hit!=um_bboxes.end())
+            bboxes = (*hit).second;
 		  cdata.add_model_sname(pred_id,adc.get("service").get<std::string>());
 		  if (chain_service(cname,chain_logger,adc,cdata,
-				    pred_id,meta_uris,index_uris,
+				    pred_id,meta_uris,index_uris,bboxes,
 				    parent_id,i,npredicts))
 		    break;
 		  prec_pred_id = pred_id;
@@ -861,6 +874,7 @@ namespace dd
 		  else prec_action_id = std::to_string(aid);
 		  um_meta_uris.insert(std::pair<std::string,std::vector<std::string>>(prec_action_id,meta_uris));
 		  um_index_uris.insert(std::pair<std::string,std::vector<std::string>>(prec_action_id,index_uris));
+		  um_bboxes.insert(std::pair<std::string,std::vector<std::string>>(prec_action_id,bboxes));
 		  ++aid;
 		}
 	    }
